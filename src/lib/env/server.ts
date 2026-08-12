@@ -69,17 +69,6 @@ export function requireAsaasWebhookToken(): string {
   return token;
 }
 
-export function getResendEnv(): { apiKey: string; from: string } | null {
-  const apiKey = process.env.RESEND_API_KEY;
-
-  if (!apiKey) return null;
-
-  return {
-    apiKey,
-    from: process.env.RESEND_FROM_EMAIL || "CatalogoJá <onboarding@resend.dev>",
-  };
-}
-
 export function requireSupabaseServiceRoleKey(): string {
   const result = z.string().min(1).safeParse(process.env.SUPABASE_SERVICE_ROLE_KEY);
 

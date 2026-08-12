@@ -9,17 +9,27 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
-export function LoginForm({ passwordLoginEnabled = false }: { passwordLoginEnabled?: boolean }) {
+export function LoginForm({
+  emailLoginEnabled = false,
+  passwordLoginEnabled = false,
+}: {
+  emailLoginEnabled?: boolean;
+  passwordLoginEnabled?: boolean;
+}) {
   const [state, action] = useActionState(sendMagicLinkAction, {});
   const [password, setPassword] = useState("");
-  const isPasswordLogin = passwordLoginEnabled && password.length > 0;
+  const isPasswordLogin = passwordLoginEnabled && (!emailLoginEnabled || password.length > 0);
 
   return (
     <form action={action} className="grid gap-5">
       <Field>
         <FieldLabel htmlFor="email">E-mail da assinatura</FieldLabel>
         <Input autoComplete="email" id="email" name="email" placeholder="voce@empresa.com" required type="email" />
-        <FieldDescription>{passwordLoginEnabled ? "Use o e-mail cadastrado no Supabase." : "Enviaremos um link seguro. Você não precisa memorizar senha."}</FieldDescription>
+        <FieldDescription>
+          {passwordLoginEnabled
+            ? "Use um usuário de teste cadastrado manualmente no Supabase."
+            : "O envio de link seguro será habilitado em uma próxima etapa."}
+        </FieldDescription>
       </Field>
 
       {passwordLoginEnabled ? (
@@ -31,10 +41,13 @@ export function LoginForm({ passwordLoginEnabled = false }: { passwordLoginEnabl
             name="password"
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Sua senha"
+            required={!emailLoginEnabled}
             type="password"
             value={password}
           />
-          <FieldDescription>No ambiente local, deixe vazio apenas se preferir receber o magic link.</FieldDescription>
+          <FieldDescription>
+            Disponível somente no ambiente local para usuários de teste.
+          </FieldDescription>
         </Field>
       ) : null}
 

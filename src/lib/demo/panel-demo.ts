@@ -83,6 +83,10 @@ export function isDemoAccessEnabled() {
   return process.env.DEMO_ACCESS_ENABLED !== "false";
 }
 
+export function isEmailAuthEnabled() {
+  return process.env.EMAIL_AUTH_ENABLED === "true";
+}
+
 export function isLocalPasswordLoginEnabled() {
   return process.env.NODE_ENV !== "production";
 }

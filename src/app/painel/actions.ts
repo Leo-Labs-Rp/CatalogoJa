@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { getSiteUrl } from "@/lib/env/server";
 import { isSupabaseConfigured } from "@/lib/env/public";
-import { DEMO_COOKIE_NAME, isDemoAccessEnabled, isLocalPasswordLoginEnabled } from "@/lib/demo/panel-demo";
+import { DEMO_COOKIE_NAME, isDemoAccessEnabled, isEmailAuthEnabled, isLocalPasswordLoginEnabled } from "@/lib/demo/panel-demo";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginActionState = {
@@ -51,6 +51,10 @@ export async function sendMagicLinkAction(
     }
 
     redirect("/painel/loja");
+  }
+
+  if (!isEmailAuthEnabled()) {
+    return { error: "O acesso por e-mail ainda não está habilitado. Use uma conta de teste local ou a demonstração." };
   }
 
   try {

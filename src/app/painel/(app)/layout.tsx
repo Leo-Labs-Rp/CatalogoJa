@@ -25,7 +25,7 @@ export default async function ProtectedPanelLayout({ children }: { children: Rea
   if (!context.tenant) {
     return (
       <main className="grid min-h-screen place-items-center px-4">
-        <Card className="max-w-xl"><CardContent className="grid gap-5 p-7"><Alert icon={Clock3} title="Sua loja ainda está sendo preparada" description="O pagamento pode levar alguns instantes para chegar. Assim que o cadastro for concluído, entre novamente pelo link enviado ao seu e-mail." variant="warning" /><form action={signOutAction}><Button type="submit" variant="secondary"><LogOut aria-hidden="true" />Sair e tentar depois</Button></form></CardContent></Card>
+        <Card className="max-w-xl"><CardContent className="grid gap-5 p-7"><Alert icon={Clock3} title="Sua loja ainda está sendo preparada" description="O pagamento pode levar alguns instantes para chegar. Saia, aguarde a confirmação e tente novamente mais tarde." variant="warning" /><form action={signOutAction}><Button type="submit" variant="secondary"><LogOut aria-hidden="true" />Sair e tentar depois</Button></form></CardContent></Card>
       </main>
     );
   }

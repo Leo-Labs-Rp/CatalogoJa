@@ -9,7 +9,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPanelContext } from "@/lib/auth/session";
-import { isDemoAccessEnabled, isLocalPasswordLoginEnabled } from "@/lib/demo/panel-demo";
+import { isDemoAccessEnabled, isEmailAuthEnabled, isLocalPasswordLoginEnabled } from "@/lib/demo/panel-demo";
 
 export const metadata: Metadata = { title: "Acessar painel" };
 
@@ -20,6 +20,7 @@ export default async function LoginPage({
 }) {
   const [context, query] = await Promise.all([getPanelContext(), searchParams]);
   const demoEnabled = isDemoAccessEnabled();
+  const emailLoginEnabled = isEmailAuthEnabled();
   const passwordLoginEnabled = isLocalPasswordLoginEnabled() && context.configured;
 
   if (context.authenticated && context.tenant) redirect("/painel/loja");
@@ -50,8 +51,20 @@ export default async function LoginPage({
                 variant="warning"
               />
             ) : null}
-            {query.erro ? <Alert title="O link expirou ou já foi utilizado. Solicite um novo acesso." variant="danger" /> : null}
-            <LoginForm passwordLoginEnabled={passwordLoginEnabled} />
+            {!emailLoginEnabled && !passwordLoginEnabled ? (
+              <Alert
+                description="Nesta fase não enviamos links por e-mail. O acesso real será habilitado quando a autenticação for definida."
+                title="Acesso real temporariamente indisponível"
+                variant="warning"
+              />
+            ) : null}
+            {query.erro && emailLoginEnabled ? <Alert title="O link expirou ou já foi utilizado. Solicite um novo acesso." variant="danger" /> : null}
+            {emailLoginEnabled || passwordLoginEnabled ? (
+              <LoginForm
+                emailLoginEnabled={emailLoginEnabled}
+                passwordLoginEnabled={passwordLoginEnabled}
+              />
+            ) : null}
             <div className="flex items-center gap-2 text-xs leading-5 text-[var(--app-foreground-muted)]">
               <KeyRound aria-hidden="true" className="size-4 shrink-0" />
               Seu acesso real usa os dados e permissões configurados no Supabase.

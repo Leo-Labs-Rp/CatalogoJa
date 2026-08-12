@@ -4,8 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CATALOGOJA_MONTHLY_PLAN } from "@/lib/billing/plan";
-import { sendWelcomeEmail } from "@/lib/email/welcome";
-import { getSiteUrl, requireAsaasWebhookToken } from "@/lib/env/server";
+import { requireAsaasWebhookToken } from "@/lib/env/server";
 import { isSupabaseConfigured } from "@/lib/env/public";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, Json } from "@/types/database";
@@ -208,7 +207,6 @@ async function activateExistingSubscription(event: WebhookEvent) {
 
 async function provisionTenant(intent: SignupIntent, event: WebhookEvent) {
   const admin = createAdminClient();
-  const firstProvision = intent.status !== "pago" || !intent.provisioned_tenant_id;
   const customerId = customerIdFrom(event) ?? intent.asaas_customer_id;
   const subscriptionId = subscriptionIdFrom(event) ?? intent.asaas_subscription_id;
   const nextDueDate = nextDueDateFrom(event);
@@ -233,9 +231,16 @@ async function provisionTenant(intent: SignupIntent, event: WebhookEvent) {
   }
 
   if (!ownerUserId) {
-    const invitation = await admin.auth.admin.inviteUserByEmail(intent.email, { data: { nome_loja: intent.nome_loja, signup_reference: intent.external_reference }, redirectTo: `${getSiteUrl()}/auth/callback?next=/painel/loja` });
-    ownerUserId = invitation.data.user?.id ?? null;
-    if (invitation.error || !ownerUserId) {
+    const created = await admin.auth.admin.createUser({
+      email: intent.email,
+      email_confirm: true,
+      user_metadata: {
+        nome_loja: intent.nome_loja,
+        signup_reference: intent.external_reference,
+      },
+    });
+    ownerUserId = created.data.user?.id ?? null;
+    if (created.error || !ownerUserId) {
       const { data: listed, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
       if (listError) throw listError;
       ownerUserId = listed.users.find((user) => user.email?.toLowerCase() === intent.email)?.id ?? null;
@@ -283,7 +288,6 @@ async function provisionTenant(intent: SignupIntent, event: WebhookEvent) {
   if (subscriptionId) intentValues.asaas_subscription_id = subscriptionId;
   const { error: intentError } = await admin.from("signup_intents").update(intentValues).eq("id", intent.id);
   if (intentError) throw intentError;
-  if (firstProvision) await sendWelcomeEmail({ email: intent.email, slug: intent.slug, storeName: intent.nome_loja }).catch(() => undefined);
 }
 
 async function updateSubscriptionStatus(event: WebhookEvent, subscriptionStatus: "atrasado" | "cancelado", tenantStatus: "inadimplente" | "cancelado") {
