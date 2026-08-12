@@ -15,11 +15,23 @@ export function ThemePreviewSection() {
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[0.75fr_1.25fr]">
-      <Card className="p-4 sm:p-5 lg:sticky lg:top-5">
+      <Card className="border-brand-200/80 p-4 sm:p-5 lg:sticky lg:top-5">
         <ThemePicker onValueChange={setTheme} value={theme} />
-        <div className="mt-4 rounded-lg bg-[var(--app-surface-muted)] p-3"><p className="text-sm font-semibold">Tema {selected.name}</p><p className="mt-1 text-xs leading-5 text-[var(--app-foreground-muted)]">{selected.description} Você pode trocar quando quiser.</p></div>
+        <div className="mt-4 rounded-lg border border-brand-200/70 bg-brand-50 p-3">
+          <p className="text-sm font-semibold text-brand-900">Tema {selected.name}</p>
+          <p className="mt-1 text-xs leading-5 text-[var(--app-foreground-muted)]">
+            {selected.description} Você pode trocar quando quiser.
+          </p>
+        </div>
       </Card>
-      <div><p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">Prévia interativa</p><div className="max-h-[43rem] overflow-auto rounded-[var(--radius-panel)]"><StorePreview catalog={{ ...marketingCatalog, tema: theme }} framed theme={theme} /></div></div>
+      <div className="min-w-0">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-700">
+          Prévia interativa
+        </p>
+        <div className="overflow-hidden rounded-[var(--radius-panel)]">
+          <StorePreview catalog={{ ...marketingCatalog, tema: theme }} framed theme={theme} />
+        </div>
+      </div>
     </div>
   );
 }
