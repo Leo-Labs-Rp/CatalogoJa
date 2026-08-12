@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CatalogoJá
 
-## Getting Started
+SaaS multi-tenant de catálogo digital para comerciantes divulgarem produtos e receberem pedidos pelo WhatsApp.
 
-First, run the development server:
+## Estado atual
+
+Etapa funcional concluída: landing comercial, assinatura em duas etapas, checkout recorrente, webhook idempotente, login por magic link, painel completo e catálogo público multi-tenant. O projeto mantém o design system responsivo com seis temas.
+
+As integrações não exigem chaves para o projeto compilar. Os clientes Supabase validam a configuração apenas quando uma operação de banco é executada.
+
+## Requisitos
+
+- Node.js 20.20 ou superior
+- npm 10 ou superior
+- Um projeto Supabase (necessário para autenticação, banco e uploads)
+- Uma conta Asaas Sandbox (necessária para testar o checkout e os webhooks)
+
+## Desenvolvimento local
 
 ```bash
+npm install
+Copy-Item .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Preencha `.env.local` quando as credenciais estiverem disponíveis. Nunca envie esse arquivo para o Git. Sem as chaves, todas as páginas continuam abrindo com estados orientativos, mas login, banco e checkout ficam desativados.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Rotas principais
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/`: landing comercial;
+- `/cadastro`: dados, slug em tempo real, tema e checkout;
+- `/painel`: login por magic link;
+- `/painel/loja`, `/painel/categorias`, `/painel/produtos`, `/painel/assinatura`;
+- `/loja/[slug]`: catálogo público;
+- `/api/webhooks/asaas`: sincronização de pagamento e provisionamento.
 
-## Learn More
+## Ativação das integrações
 
-To learn more about Next.js, take a look at the following resources:
+1. Aplique todas as migrações em `supabase/migrations`.
+2. Copie `.env.example` para `.env.local` e informe as chaves.
+3. No Supabase Auth, adicione `http://localhost:3000/auth/callback` às URLs permitidas em desenvolvimento.
+4. No Asaas Sandbox, cadastre `https://SEU-DOMINIO/api/webhooks/asaas` e use exatamente o mesmo token de `ASAAS_WEBHOOK_TOKEN`.
+5. Para testar webhooks localmente, use uma URL HTTPS pública de túnel e atualize `NEXT_PUBLIC_SITE_URL`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+O webhook trata confirmações, recebimentos, atrasos, cancelamentos e eventos do Checkout. Reentregas são registradas por `event_id`, impedindo provisionamento duplicado.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Os números de WhatsApp são exibidos como `+55 (11) 99999-9999` nos formulários e persistidos como `5511999999999`, formato necessário para os links `wa.me`.
 
-## Deploy on Vercel
+## Verificações
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run check
+npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`npm run check` executa lint, TypeScript e a validação automática de contraste AA das seis paletas.
+
+## Design system
+
+Tokens, temas e componentes reutilizáveis estão documentados em `docs/design-system.md`. A landing, o painel, o cadastro e a loja pública importam os mesmos controles, cards, estados e componentes de catálogo.
+
+## Banco de dados
+
+As migrações estão em `supabase/migrations`. Consulte `supabase/README.md` antes de aplicá-las.

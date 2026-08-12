@@ -1,0 +1,85 @@
+import { ArrowLeft, Eye, KeyRound, ShoppingBag } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { startDemoAction } from "@/app/painel/actions";
+import { LoginForm } from "@/components/painel/login-form";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getPanelContext } from "@/lib/auth/session";
+import { isDemoAccessEnabled, isLocalPasswordLoginEnabled } from "@/lib/demo/panel-demo";
+
+export const metadata: Metadata = { title: "Acessar painel" };
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ erro?: string }>;
+}) {
+  const [context, query] = await Promise.all([getPanelContext(), searchParams]);
+  const demoEnabled = isDemoAccessEnabled();
+  const passwordLoginEnabled = isLocalPasswordLoginEnabled() && context.configured;
+
+  if (context.authenticated && context.tenant) redirect("/painel/loja");
+
+  return (
+    <main className="relative grid min-h-screen place-items-center overflow-hidden px-4 py-12">
+      <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-brand-100 to-transparent" />
+      <div className="relative w-full max-w-md">
+        <Link className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--app-foreground-muted)] hover:text-brand-700" href="/">
+          <ArrowLeft aria-hidden="true" className="size-4" />
+          Voltar ao início
+        </Link>
+
+        <Card className="overflow-hidden">
+          <div className="h-1.5 bg-brand-700" />
+          <CardHeader>
+            <span className="mb-3 grid size-11 place-items-center rounded-xl bg-brand-100 text-brand-700">
+              <ShoppingBag aria-hidden="true" className="size-5" />
+            </span>
+            <CardTitle className="text-2xl">Seu catálogo, num clique</CardTitle>
+            <CardDescription>Entre para editar sua loja, categorias e produtos.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-5">
+            {!context.configured ? (
+              <Alert
+                description="A interface já está pronta. Adicione as variáveis NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local para habilitar o envio."
+                title="Integração aguardando as chaves"
+                variant="warning"
+              />
+            ) : null}
+            {query.erro ? <Alert title="O link expirou ou já foi utilizado. Solicite um novo acesso." variant="danger" /> : null}
+            <LoginForm passwordLoginEnabled={passwordLoginEnabled} />
+            <div className="flex items-center gap-2 text-xs leading-5 text-[var(--app-foreground-muted)]">
+              <KeyRound aria-hidden="true" className="size-4 shrink-0" />
+              Seu acesso real usa os dados e permissões configurados no Supabase.
+            </div>
+            {demoEnabled ? (
+              <div className="grid gap-3 border-t pt-5">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--app-foreground-muted)]">
+                  <span className="h-px flex-1 bg-[var(--app-border)]" />
+                  ou explore primeiro
+                  <span className="h-px flex-1 bg-[var(--app-border)]" />
+                </div>
+                <form action={startDemoAction}>
+                  <Button className="w-full" type="submit" variant="secondary">
+                    <Eye aria-hidden="true" />
+                    Ver demonstração
+                  </Button>
+                </form>
+                <p className="text-center text-xs leading-5 text-[var(--app-foreground-muted)]">Abre um catálogo preenchido e somente leitura. Nenhum dado real será alterado.</p>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <p className="mt-5 text-center text-sm text-[var(--app-foreground-muted)]">
+          Ainda não tem catálogo?{" "}
+          <Link className="inline-flex min-h-11 items-center font-semibold text-brand-700 hover:underline" href="/cadastro">Criar minha loja</Link>
+        </p>
+      </div>
+    </main>
+  );
+}

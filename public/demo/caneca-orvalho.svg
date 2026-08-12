@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title description">
+  <title id="title">Caneca Orvalho</title>
+  <description id="description">Caneca artesanal verde clara sobre fundo creme.</description>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f2efe5"/>
+      <stop offset="1" stop-color="#cfd6c5"/>
+    </linearGradient>
+    <linearGradient id="cup" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#b9c5a8"/>
+      <stop offset="1" stop-color="#819478"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="28" stdDeviation="25" flood-color="#33412f" flood-opacity=".21"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="662" cy="142" r="86" fill="#fff" opacity=".22"/>
+  <path d="M76 690c132-98 290-109 448-42 94 40 184 35 276-15v167H0z" fill="#fff" opacity=".2"/>
+  <g filter="url(#shadow)">
+    <path d="M230 285h334l-30 300c-5 52-48 91-100 91h-74c-52 0-95-39-100-91z" fill="url(#cup)"/>
+    <ellipse cx="397" cy="286" rx="168" ry="45" fill="#d8e0ce"/>
+    <ellipse cx="397" cy="292" rx="139" ry="29" fill="#5e4635"/>
+    <path d="M548 361c104-7 143 35 135 105-8 69-62 106-140 83" fill="none" stroke="#819478" stroke-width="45" stroke-linecap="round"/>
+    <path d="M308 444c50 37 128 41 183 4" fill="none" stroke="#dce3d3" stroke-width="10" stroke-linecap="round" opacity=".58"/>
+    <path d="M355 214c-22-36 22-56 4-93M430 214c-22-36 22-56 4-93" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".62"/>
+  </g>
+</svg>
