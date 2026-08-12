@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 
 import { isSupabaseConfigured } from "@/lib/env/public";
+import { ACTIVE_TENANT_COOKIE_NAME } from "@/lib/auth/tenant-cookie";
 import { DEMO_COOKIE_NAME, isDemoAccessEnabled } from "@/lib/demo/panel-demo";
 import { createClient } from "@/lib/supabase/server";
 
@@ -73,7 +74,9 @@ export async function startDemoAction() {
 }
 
 export async function signOutAction() {
-  (await cookies()).delete(DEMO_COOKIE_NAME);
+  const cookieStore = await cookies();
+  cookieStore.delete(ACTIVE_TENANT_COOKIE_NAME);
+  cookieStore.delete(DEMO_COOKIE_NAME);
   try {
     if (isSupabaseConfigured()) {
       const supabase = await createClient();

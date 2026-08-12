@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
+import { ACTIVE_TENANT_COOKIE_MAX_AGE, ACTIVE_TENANT_COOKIE_NAME } from "@/lib/auth/tenant-cookie";
 import { isSupabaseConfigured } from "@/lib/env/public";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -25,5 +26,17 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ accessConfigured, ready, slug: data.status === "pago" ? data.slug : null, status: data.status });
+  const response = NextResponse.json({ accessConfigured, ready, slug: data.status === "pago" ? data.slug : null, status: data.status });
+
+  if (ready && data.provisioned_tenant_id) {
+    response.cookies.set(ACTIVE_TENANT_COOKIE_NAME, data.provisioned_tenant_id, {
+      httpOnly: true,
+      maxAge: ACTIVE_TENANT_COOKIE_MAX_AGE,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
+
+  return response;
 }
