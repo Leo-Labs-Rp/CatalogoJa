@@ -131,7 +131,8 @@ async function findIntent(event: WebhookEvent): Promise<SignupIntent | null> {
     if (error) throw error;
     if (data) return data;
   }
-  const checkoutId = textValue(event.checkout, "id", "checkoutId");
+  const checkoutId = textValue(event.payment, "checkoutSession")
+    ?? textValue(event.checkout, "id", "checkoutId");
   if (checkoutId) {
     const { data, error } = await admin.from("signup_intents").select("*").eq("asaas_checkout_id", checkoutId).maybeSingle();
     if (error) throw error;
