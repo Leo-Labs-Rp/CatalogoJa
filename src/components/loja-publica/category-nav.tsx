@@ -1,0 +1,99 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import type { CatalogCategory } from "@/types/catalog";
+import { cn } from "@/lib/utils/cn";
+
+export type CategoryNavProps = {
+  categories: Pick<CatalogCategory, "id" | "nome">[];
+  sticky?: boolean;
+};
+
+export function CategoryNav({ categories, sticky = false }: CategoryNavProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(categories[0]?.id ?? null);
+  const [edgeFade, setEdgeFade] = useState({ end: false, start: false });
+  const activeId = categories.some((category) => category.id === selectedId)
+    ? selectedId
+    : categories[0]?.id;
+
+  const updateEdgeFade = useCallback(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const next = {
+      end: scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1,
+      start: scroller.scrollLeft > 1,
+    };
+    setEdgeFade((current) =>
+      current.end === next.end && current.start === next.start ? current : next,
+    );
+  }, []);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(updateEdgeFade);
+    const scroller = scrollerRef.current;
+    const observer = new ResizeObserver(updateEdgeFade);
+    if (scroller) observer.observe(scroller);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [categories, updateEdgeFade]);
+
+  if (categories.length === 0) {
+    return null;
+  }
+
+  return (
+    <nav
+      aria-label="Categorias de produtos"
+      className={cn(
+        "relative border-b border-[var(--cor-borda)]",
+        sticky && "sticky top-0 z-30 bg-[var(--cor-fundo)]",
+      )}
+    >
+      <div className="relative mx-auto w-full max-w-[var(--content-width)]">
+        {edgeFade.start ? (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-[linear-gradient(to_right,var(--cor-fundo),transparent)]"
+          />
+        ) : null}
+        <div
+          className="flex w-full gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] @2xl/store:px-6 @5xl/store:px-8 [&::-webkit-scrollbar]:hidden"
+          onScroll={updateEdgeFade}
+          ref={scrollerRef}
+        >
+          {categories.map((category) => {
+            const active = category.id === activeId;
+
+            return (
+              <a
+                aria-current={active ? "true" : undefined}
+                className={
+                  active
+                    ? "inline-flex min-h-11 shrink-0 items-center rounded-full bg-[var(--cor-primaria)] px-4 py-2 text-sm font-semibold text-[var(--cor-fundo)] outline-none transition-opacity hover:opacity-90 focus-visible:ring-3 focus-visible:ring-[color:var(--cor-primaria)]/30"
+                    : "inline-flex min-h-11 shrink-0 items-center rounded-full border border-[var(--cor-borda)] bg-[var(--cor-superficie)] px-4 py-2 text-sm font-medium text-[var(--cor-texto-suave)] outline-none transition-colors hover:border-[var(--cor-primaria)] hover:text-[var(--cor-texto)] focus-visible:ring-3 focus-visible:ring-[color:var(--cor-primaria)]/30"
+                }
+                href={`#categoria-${category.id}`}
+                key={category.id}
+                onClick={() => setSelectedId(category.id)}
+              >
+                {category.nome}
+              </a>
+            );
+          })}
+        </div>
+        {edgeFade.end ? (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-[linear-gradient(to_left,var(--cor-fundo),transparent)]"
+          />
+        ) : null}
+      </div>
+    </nav>
+  );
+}

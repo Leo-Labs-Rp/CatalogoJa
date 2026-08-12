@@ -1,0 +1,44 @@
+# Banco Supabase
+
+## Migrações
+
+O arquivo `migrations/202607180001_initial_schema.sql` cria:
+
+- tenants, categorias, produtos e assinaturas;
+- intenções de cadastro anteriores ao pagamento;
+- registro idempotente de eventos do Asaas;
+- validações, chaves estrangeiras e índices;
+- RLS para isolamento por proprietário;
+- função pública segura `get_public_catalog(slug)`;
+- bucket público `produtos`, com escrita limitada ao proprietário e arquivos de até 2 MB.
+
+O arquivo `migrations/202607190002_functional_screens.sql` adiciona a função pública mínima usada para diferenciar lojas canceladas de slugs inexistentes, sem expor produtos nem dados privados.
+
+O arquivo `migrations/202607190003_normalize_brazil_whatsapp.sql` normaliza números brasileiros antigos e passa a exigir o formato canônico `55 + DDD + número`, somente com dígitos.
+
+O arquivo `migrations/202608060004_asaas_customer_lookup.sql` adiciona o índice usado pela reconciliação idempotente de eventos do Asaas por cliente, mantendo `asaas_subscription_id` como identificador exclusivo da assinatura.
+
+## Aplicação
+
+Quando o projeto Supabase existir, vincule o CLI ao projeto e execute:
+
+```bash
+npx supabase link --project-ref SEU_PROJECT_REF
+npx supabase db push
+```
+
+Também é possível executar a migração uma única vez pelo SQL Editor do Supabase.
+
+## Decisões de segurança
+
+- O navegador não pode inserir tenants nem alterar status de tenant/assinatura.
+- `signup_intents` e `asaas_webhook_events` não possuem políticas para usuários; somente a service role do backend pode acessá-las.
+- A loja pública consulta uma função que omite `owner_user_id` e campos operacionais.
+- O caminho de upload deve começar por `produtos/{tenant_id}/`; as policies conferem se o usuário autenticado é dono desse tenant.
+- Produto e categoria usam uma chave estrangeira composta, impedindo vincular um produto à categoria de outra loja.
+
+Após aplicar a migração, gere os tipos oficiais do projeto e substitua `src/types/database.ts`:
+
+```bash
+npx supabase gen types typescript --linked > src/types/database.ts
+```

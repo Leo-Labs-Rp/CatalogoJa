@@ -1,0 +1,66 @@
+"use client";
+
+import { Check, CheckCircle2, Clock3, Copy, ExternalLink, Mail, ShoppingBag } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { Alert } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+type StatusResponse = { configured?: boolean; ready?: boolean; slug?: string | null; status?: "pendente" | "pago" | "expirado" | "cancelado" };
+
+export function SuccessStatus({ reference }: { reference: string | null }) {
+  const [status, setStatus] = useState<StatusResponse>({ status: "pendente" });
+  const [copied, setCopied] = useState<string | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (!reference) return;
+    let attempts = 0;
+    let timer: number | undefined;
+    async function check() {
+      attempts += 1;
+      try {
+        const response = await fetch(`/api/cadastro/status?ref=${encodeURIComponent(reference!)}`, { cache: "no-store" });
+        const result = await response.json() as StatusResponse;
+        setStatus(result);
+        if (result.ready || result.status === "cancelado" || result.status === "expirado" || result.configured === false) return;
+      } catch { /* Uma nova tentativa será feita. */ }
+      if (attempts < 30) timer = window.setTimeout(check, 2000);
+      else setTimedOut(true);
+    }
+    void check();
+    return () => window.clearTimeout(timer);
+  }, [reference]);
+
+  async function copy(value: string, key: string) {
+    await navigator.clipboard.writeText(value);
+    setCopied(key);
+    window.setTimeout(() => setCopied(null), 1800);
+  }
+
+  if (!reference) return <Alert description="Volte ao checkout pelo cadastro para concluir sua assinatura." title="Referência do pagamento não encontrada" variant="danger" />;
+  if (status.configured === false) return <Alert description="Configure Supabase e Asaas para o webhook confirmar o pagamento e liberar estes links." title="Integrações aguardando as chaves" variant="warning" />;
+  if (status.status === "cancelado" || status.status === "expirado") return <Alert description="Você pode reiniciar o cadastro e gerar uma nova sessão segura de pagamento." title="Este checkout foi cancelado ou expirou" variant="danger" />;
+
+  if (!status.ready || !status.slug) {
+    return <Card className="p-7 text-center sm:p-9"><span className="mx-auto grid size-14 place-items-center rounded-full bg-amber-50 text-amber-700"><Clock3 aria-hidden="true" className="size-6" /></span><h1 className="mt-5 text-2xl font-bold">Estamos preparando sua loja</h1><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--app-foreground-muted)]">O checkout foi concluído. A confirmação do Asaas pode levar alguns instantes; esta página atualiza automaticamente.</p><div className="mx-auto mt-6 h-1.5 w-48 overflow-hidden rounded-full bg-[var(--app-surface-muted)]"><div className="h-full w-2/3 animate-pulse rounded-full bg-brand-600" /></div>{timedOut ? <Alert className="mt-6 text-left" description="Você pode fechar esta página com segurança e acessar o painel pelo e-mail assim que a confirmação chegar." title="A confirmação está levando mais tempo" variant="warning" /> : null}</Card>;
+  }
+
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const storeUrl = `${origin}/loja/${status.slug}`;
+  const panelUrl = `${origin}/painel`;
+
+  return (
+    <Card className="overflow-hidden"><div className="h-1.5 bg-[var(--app-success)]" /><div className="p-6 sm:p-9"><span className="grid size-14 place-items-center rounded-full bg-[var(--app-success-soft)] text-[var(--app-success)]"><CheckCircle2 aria-hidden="true" className="size-7" /></span><h1 className="mt-5 text-3xl font-bold">Sua loja está no ar!</h1><p className="mt-2 text-sm leading-6 text-[var(--app-foreground-muted)]">Compartilhe o catálogo e use o painel para cadastrar suas categorias e produtos.</p>
+      <div className="mt-7 grid gap-3"><LinkRow copied={copied === "store"} href={storeUrl} icon={ShoppingBag} label="Loja pública" onCopy={() => copy(storeUrl, "store")} /><LinkRow copied={copied === "panel"} href={panelUrl} icon={ExternalLink} label="Painel de edição" onCopy={() => copy(panelUrl, "panel")} /></div>
+      <div className="mt-6 flex items-start gap-3 rounded-lg bg-brand-50 p-4 text-sm leading-6"><Mail aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand-700" /><p>Também enviamos esses links e o acesso seguro ao painel para o e-mail da assinatura.</p></div>
+      <Link className={buttonVariants({ className: "mt-6", size: "lg" })} href="/painel">Acessar meu painel</Link>
+    </div></Card>
+  );
+}
+
+function LinkRow({ copied, href, icon: Icon, label, onCopy }: { copied: boolean; href: string; icon: typeof ShoppingBag; label: string; onCopy: () => void }) {
+  return <div className="flex items-center gap-3 rounded-lg border bg-white p-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-100 text-brand-700"><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0 flex-1"><p className="text-xs font-semibold text-[var(--app-foreground-muted)]">{label}</p><a className="block truncate text-sm font-medium text-brand-700 hover:underline" href={href} target="_blank">{href}</a></div><Button aria-label={`Copiar link de ${label}`} onClick={onCopy} size="icon" variant="ghost">{copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}</Button></div>;
+}

@@ -1,0 +1,44 @@
+import { Ban, Settings, Store } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { StorePreview } from "@/components/loja-publica/store-preview";
+import { Alert } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { getPublicStore } from "@/lib/catalog/public-catalog";
+
+export const dynamic = "force-static";
+export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const store = await getPublicStore(slug);
+  if (store.kind !== "available") return { title: "Loja indisponível", robots: { index: false, follow: false } };
+  return { title: store.catalog.nome_loja, description: store.catalog.descricao_curta ?? `Catálogo digital de ${store.catalog.nome_loja}.` };
+}
+
+export default async function PublicStorePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const store = await getPublicStore(slug);
+
+  if (store.kind === "missing") notFound();
+  if (store.kind === "unconfigured") {
+    return <StoreMessage icon={Settings} title="Catálogo aguardando configuração" description="A tela pública está pronta. Configure as chaves do Supabase para carregar os dados reais desta loja." />;
+  }
+  if (store.kind === "canceled") {
+    return <StoreMessage icon={Ban} title="Loja temporariamente indisponível" description="Este catálogo não está recebendo pedidos no momento. Os produtos permanecem preservados para uma futura reativação." />;
+  }
+
+  return (
+    <div data-tema={store.catalog.tema}>
+      {store.catalog.status === "inadimplente" ? <div className="bg-[var(--cor-fundo)] px-4 pt-3"><Alert className="mx-auto max-w-[var(--content-width)]" description="O catálogo continua disponível, mas algumas atualizações podem ficar limitadas." title="Aviso sobre esta loja" variant="warning" /></div> : null}
+      <StorePreview catalog={store.catalog} />
+    </div>
+  );
+}
+
+function StoreMessage({ description, icon: Icon, title }: { description: string; icon: typeof Store; title: string }) {
+  return <main className="grid min-h-screen place-items-center px-4"><Card className="w-full max-w-lg"><CardContent className="flex flex-col items-center p-8 text-center"><span className="grid size-14 place-items-center rounded-full bg-brand-100 text-brand-700"><Icon aria-hidden="true" className="size-6" /></span><h1 className="mt-5 text-2xl font-bold">{title}</h1><p className="mt-2 text-sm leading-6 text-[var(--app-foreground-muted)]">{description}</p><Link className={buttonVariants({ className: "mt-6", variant: "secondary" })} href="/">Conhecer o CatalogoJá</Link></CardContent></Card></main>;
+}

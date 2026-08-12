@@ -1,0 +1,81 @@
+/*
+ * Fonte única das seis paletas do catálogo. Os componentes consomem apenas
+ * estas variáveis; nenhuma página precisa conhecer valores hexadecimais.
+ */
+[data-tema="classico"] {
+  --cor-primaria: #594726;
+  --cor-fundo: #f8f4ea;
+  --cor-texto: #2e2b27;
+  --cor-acao: #8f6b20;
+  --cor-na-acao: #ffffff;
+  --cor-superficie: #fffdf8;
+  --cor-borda: #e3d8c0;
+  --cor-texto-suave: #716957;
+  --cor-imagem-fundo: #eee4d1;
+}
+
+[data-tema="natural"] {
+  --cor-primaria: #304638;
+  --cor-fundo: #f2ebdd;
+  --cor-texto: #263b2f;
+  --cor-acao: #5a6c35;
+  --cor-na-acao: #ffffff;
+  --cor-superficie: #faf7ef;
+  --cor-borda: #d9d1bc;
+  --cor-texto-suave: #687164;
+  --cor-imagem-fundo: #e5dcc5;
+}
+
+[data-tema="tech"] {
+  --cor-primaria: #102f50;
+  --cor-fundo: #f2f5f8;
+  --cor-texto: #0d2947;
+  --cor-acao: #0b5fd7;
+  --cor-na-acao: #ffffff;
+  --cor-superficie: #ffffff;
+  --cor-borda: #d9e1ea;
+  --cor-texto-suave: #5b6c7f;
+  --cor-imagem-fundo: #e8edf4;
+}
+
+[data-tema="delivery"] {
+  --cor-primaria: #562f21;
+  --cor-fundo: #fffaf5;
+  --cor-texto: #47291f;
+  --cor-acao: #b84916;
+  --cor-na-acao: #ffffff;
+  --cor-superficie: #ffffff;
+  --cor-borda: #efd9ca;
+  --cor-texto-suave: #80675e;
+  --cor-imagem-fundo: #f8e8dc;
+}
+
+[data-tema="elegante"] {
+  color-scheme: dark;
+  --cor-primaria: #f7f3ef;
+  --cor-fundo: #0e0e0f;
+  --cor-texto: #f7f3ef;
+  --cor-acao: #d6a58d;
+  --cor-na-acao: #1b1210;
+  --cor-superficie: #19191b;
+  --cor-borda: #383438;
+  --cor-texto-suave: #b8b0ad;
+  --cor-imagem-fundo: #282326;
+}
+
+[data-tema="minimal"] {
+  --cor-primaria: #111214;
+  --cor-fundo: #ffffff;
+  --cor-texto: #111214;
+  --cor-acao: #4e5963;
+  --cor-na-acao: #ffffff;
+  --cor-superficie: #ffffff;
+  --cor-borda: #e3e5e8;
+  --cor-texto-suave: #6c737a;
+  --cor-imagem-fundo: #f1f2f3;
+}
+
+[data-tema] {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+}

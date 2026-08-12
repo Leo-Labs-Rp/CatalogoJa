@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title description">
+  <title id="title">Kit Afeto</title>
+  <description id="description">Caixa de presente terracota com laço rosado.</description>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f4e1d8"/>
+      <stop offset="1" stop-color="#ddb2a0"/>
+    </linearGradient>
+    <linearGradient id="box" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#bd694c"/>
+      <stop offset="1" stop-color="#914a37"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="28" stdDeviation="26" flood-color="#6e3428" flood-opacity=".22"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <path d="M102 139c65 21 95 61 91 120-63-12-97-52-91-120z" fill="#fff" opacity=".23"/>
+  <path d="M698 636c-71-2-113-34-126-91 63-9 106 23 126 91z" fill="#8c5b4e" opacity=".15"/>
+  <g filter="url(#shadow)">
+    <rect x="196" y="326" width="408" height="327" rx="20" fill="url(#box)"/>
+    <rect x="168" y="282" width="464" height="104" rx="22" fill="#cb7a5d"/>
+    <rect x="356" y="282" width="88" height="371" fill="#e9b0aa"/>
+    <path d="M397 285c-76-7-130-44-125-92 5-43 65-40 125 92z" fill="#e9b0aa"/>
+    <path d="M403 285c76-7 130-44 125-92-5-43-65-40-125 92z" fill="#d99692"/>
+    <circle cx="400" cy="285" r="34" fill="#f0bcb5"/>
+    <rect x="468" y="470" width="86" height="69" rx="8" fill="#f7e9df" opacity=".92"/>
+    <path d="M485 492h51M489 512h43" stroke="#8d4d3b" stroke-width="6" stroke-linecap="round" opacity=".72"/>
+  </g>
+</svg>
