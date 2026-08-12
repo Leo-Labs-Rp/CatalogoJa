@@ -55,7 +55,7 @@ export function PasswordSetupForm({ onConfigured, reference }: PasswordSetupForm
 
       if (loginError) {
         onConfigured();
-        throw new Error("A senha foi criada. Entre pelo painel usando o mesmo e-mail e senha.");
+        throw new Error("Acesso configurado. Entre pelo painel com seus dados.");
       }
 
       window.location.assign("/painel/loja");
@@ -73,7 +73,7 @@ export function PasswordSetupForm({ onConfigured, reference }: PasswordSetupForm
           Crie sua senha de acesso
         </div>
         <p className="mt-1 text-sm leading-6 text-[var(--app-foreground-muted)]">
-          Nenhum e-mail será enviado. Use o mesmo endereço informado no cadastro.
+          Informe o e-mail usado no cadastro e escolha uma senha segura.
         </p>
       </div>
 

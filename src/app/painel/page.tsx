@@ -48,7 +48,7 @@ export default async function LoginPage() {
             {context.configured ? <LoginForm /> : null}
             <div className="flex items-center gap-2 text-xs leading-5 text-[var(--app-foreground-muted)]">
               <KeyRound aria-hidden="true" className="size-4 shrink-0" />
-              A autenticação usa senha segura no Supabase, sem envio de e-mail.
+              Seus dados de acesso são protegidos com segurança.
             </div>
             {demoEnabled ? (
               <div className="grid gap-3 border-t pt-5">
