@@ -13,5 +13,17 @@ export async function GET(request: NextRequest) {
   const admin = createAdminClient();
   const { data, error } = await admin.from("signup_intents").select("status,slug,provisioned_tenant_id").eq("external_reference", ref).maybeSingle();
   if (error || !data) return NextResponse.json({ error: "Cadastro não encontrado." }, { status: 404 });
-  return NextResponse.json({ ready: data.status === "pago" && Boolean(data.provisioned_tenant_id), slug: data.status === "pago" ? data.slug : null, status: data.status });
+
+  const ready = data.status === "pago" && Boolean(data.provisioned_tenant_id);
+  let accessConfigured = false;
+
+  if (ready && data.provisioned_tenant_id) {
+    const { data: tenant } = await admin.from("tenants").select("owner_user_id").eq("id", data.provisioned_tenant_id).maybeSingle();
+    if (tenant) {
+      const { data: owner } = await admin.auth.admin.getUserById(tenant.owner_user_id);
+      accessConfigured = Boolean(owner.user?.app_metadata?.catalogoja_password_configured_at);
+    }
+  }
+
+  return NextResponse.json({ accessConfigured, ready, slug: data.status === "pago" ? data.slug : null, status: data.status });
 }

@@ -4,29 +4,26 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { z } from "zod";
 
-import { getSiteUrl } from "@/lib/env/server";
 import { isSupabaseConfigured } from "@/lib/env/public";
-import { DEMO_COOKIE_NAME, isDemoAccessEnabled, isEmailAuthEnabled, isLocalPasswordLoginEnabled } from "@/lib/demo/panel-demo";
+import { DEMO_COOKIE_NAME, isDemoAccessEnabled } from "@/lib/demo/panel-demo";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginActionState = {
   error?: string;
-  success?: string;
 };
 
 const loginSchema = z.object({
-  password: z.string().max(256).optional(),
   email: z.email("Digite um e-mail válido."),
+  password: z.string().min(1, "Digite sua senha.").max(256),
 });
 
-export async function sendMagicLinkAction(
+export async function loginWithPasswordAction(
   _previousState: LoginActionState,
   formData: FormData,
 ): Promise<LoginActionState> {
-  const passwordValue = formData.get("password");
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
-    password: typeof passwordValue === "string" ? passwordValue : undefined,
+    password: formData.get("password"),
   });
 
   if (!parsed.success) {
@@ -34,50 +31,22 @@ export async function sendMagicLinkAction(
   }
 
   const email = parsed.data.email.toLowerCase();
-  const password = parsed.data.password ?? "";
-
-  if (isLocalPasswordLoginEnabled() && password) {
-    try {
-      (await cookies()).delete(DEMO_COOKIE_NAME);
-
-      const supabase = await createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        return { error: "E-mail ou senha inválidos." };
-      }
-    } catch {
-      return { error: "Configure o Supabase no arquivo .env.local para ativar o acesso." };
-    }
-
-    redirect("/painel/loja");
-  }
-
-  if (!isEmailAuthEnabled()) {
-    return { error: "O acesso por e-mail ainda não está habilitado. Use uma conta de teste local ou a demonstração." };
-  }
+  const password = parsed.data.password;
 
   try {
-    // A real login must always leave the read-only demo session behind.
     (await cookies()).delete(DEMO_COOKIE_NAME);
 
     const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${getSiteUrl()}/auth/callback?next=/painel/loja`,
-        shouldCreateUser: false,
-      },
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      return { error: "Não foi possível enviar o link. Confira o e-mail da sua assinatura." };
+      return { error: "E-mail ou senha inválidos." };
     }
-
-    return { success: "Link enviado. Confira sua caixa de entrada e também o spam." };
   } catch {
     return { error: "Configure o Supabase no arquivo .env.local para ativar o acesso." };
   }
+
+  redirect("/painel/loja");
 }
 
 export async function startDemoAction() {

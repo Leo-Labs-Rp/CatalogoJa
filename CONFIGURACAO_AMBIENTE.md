@@ -26,9 +26,6 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 # Opcional: acesso público ao painel de demonstração.
 DEMO_ACCESS_ENABLED=true
 
-# Envio de link por e-mail desativado nesta fase.
-EMAIL_AUTH_ENABLED=false
-
 # Supabase Admin — segredo somente do servidor
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_...
 
@@ -47,7 +44,6 @@ ASAAS_WEBHOOK_TOKEN=SEU_TOKEN_ALEATORIO
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → **Settings → API Keys** → Publishable key (`sb_publishable_...`) | `.env.local` e Vercel | Sim |
 | `NEXT_PUBLIC_SITE_URL` | Local: `http://localhost:3000`. Produção: domínio em Vercel → projeto → **Settings → Domains** | `.env.local` e Vercel | Sim |
 | `DEMO_ACCESS_ENABLED` | Valor definido por você: `true` ou `false` | `.env.local` e Vercel | Não |
-| `EMAIL_AUTH_ENABLED` | Valor definido por você; mantenha `false` nesta fase | `.env.local` e Vercel | Não |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → **Settings → API Keys** → Secret key (`sb_secret_...`); a `service_role` legada também funciona | `.env.local` e Vercel | Sim para cadastro pago |
 | `ASAAS_API_KEY` | Painel web do Asaas → **Integrações → Chave da API** | `.env.local` e Vercel | Sim |
 | `ASAAS_API_URL` | Não precisa obter com chaves atuais | Deixe vazia | Não |
@@ -140,7 +136,6 @@ Documentação oficial: https://docs.asaas.com/docs/authentication
    NEXT_PUBLIC_SUPABASE_ANON_KEY
    NEXT_PUBLIC_SITE_URL
    DEMO_ACCESS_ENABLED
-   EMAIL_AUTH_ENABLED
    SUPABASE_SERVICE_ROLE_KEY
    ASAAS_API_KEY
    ASAAS_WEBHOOK_TOKEN
@@ -154,15 +149,16 @@ Documentação oficial: https://docs.asaas.com/docs/authentication
 
 Documentação oficial: https://vercel.com/docs/environment-variables/managing-environment-variables
 
-## 8. Autenticação nesta fase
+## 8. Autenticação sem envio de e-mail
 
-O projeto não envia convite, magic link nem mensagem de boas-vindas. Mantenha `EMAIL_AUTH_ENABLED=false` na Vercel.
+O projeto usa e-mail e senha no Supabase Auth, mas não envia convite, magic link nem mensagem de boas-vindas.
 
-- Para desenvolvimento local, crie manualmente um usuário com e-mail e senha em **Supabase → Authentication → Users → Add user → Create new user**.
-- Para visitantes em produção, mantenha `DEMO_ACCESS_ENABLED=true` enquanto a autenticação definitiva não for escolhida.
-- O webhook de pagamento cria o usuário confirmado e a loja sem enviar e-mail, mas esse novo cliente não terá acesso ao painel até recebermos uma forma de autenticação.
+- Para um tenant manual, crie o usuário com e-mail e senha em **Supabase → Authentication → Users → Add user → Create new user**.
+- No fluxo pago, o webhook cria o usuário confirmado sem senha. Depois da confirmação, `/cadastro/sucesso` permite criar a senha uma única vez e entra automaticamente no painel.
+- O mesmo formulário de `/painel` funciona localmente e na Vercel.
+- `DEMO_ACCESS_ENABLED=true` mantém também o acesso separado à demonstração somente leitura.
 
-As URLs de callback em **Authentication → URL Configuration** só precisarão ser configuradas quando o login por link for ativado no futuro.
+As URLs de callback em **Authentication → URL Configuration** não são necessárias para o login por senha atual.
 
 ## 9. Cadastrar o webhook no Asaas
 
@@ -235,7 +231,7 @@ Já configurado localmente:
 - URL pública do Supabase;
 - Publishable key do Supabase;
 - API key do Asaas Sandbox;
-- envio de e-mail desativado com `EMAIL_AUTH_ENABLED=false`;
+- autenticação por senha sem envio de e-mail;
 - todas as variáveis declaradas no `.env.local`.
 
 Ainda é necessário preencher:

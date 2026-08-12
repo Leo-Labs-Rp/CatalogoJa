@@ -9,7 +9,7 @@ Este guia prepara um ambiente inicial para testar autenticação, painel, CRUD, 
 3. Crie manualmente um usuário de teste com e-mail e senha no Supabase Auth.
 4. Crie o tenant de teste com o SQL deste guia.
 5. Importe o repositório na Vercel e configure as três variáveis mínimas.
-6. Entre em `/painel` com a conta manual no ambiente local ou use a demonstração pública.
+6. Entre em `/painel` com a conta manual ou use a demonstração pública.
 7. Teste o painel e a loja pública.
 8. Para testar pagamentos, configure a service role do Supabase, o Asaas Sandbox e o webhook público seguindo a seção 7.
 
@@ -84,7 +84,7 @@ Os usos reais do bucket no código estão em:
 
 ## 3. Autenticação para o teste manual
 
-O projeto não envia e-mails nesta fase. O login por magic link está desligado por padrão com `EMAIL_AUTH_ENABLED=false`, e o webhook cria o usuário do comprador já confirmado, sem convite e sem mensagem de boas-vindas.
+O projeto não envia e-mails. O acesso real usa o e-mail apenas como identificador junto com uma senha protegida pelo Supabase Auth.
 
 Para testar o painel agora:
 
@@ -92,9 +92,9 @@ Para testar o painel agora:
 2. Clique em **Add user → Create new user**.
 3. Informe um e-mail e uma senha temporária e marque o usuário como confirmado.
 4. Associe o UUID desse usuário a `tenants.owner_user_id` usando o seed da seção 6.
-5. No ambiente local, entre em `/painel` com esse e-mail e senha. O login por senha local não é exibido em produção.
+5. Entre em `/painel` com esse e-mail e senha, tanto localmente quanto na Vercel.
 
-Em produção, mantenha o botão de demonstração habilitado com `DEMO_ACCESS_ENABLED=true` enquanto a tecnologia de autenticação definitiva não for escolhida. Novos pagamentos criam a loja e o usuário silenciosamente, mas o cliente ainda não recebe uma credencial para acessar o painel.
+No fluxo de pagamento, o webhook cria o usuário confirmado silenciosamente. Quando a tela `/cadastro/sucesso` identificar a loja pronta, ela solicitará o mesmo e-mail do cadastro e uma senha nova. Após configurar a senha uma única vez, a aplicação entra automaticamente no painel. Não há convite, magic link ou mensagem de boas-vindas.
 
 ## 4. Variáveis de ambiente
 
@@ -111,7 +111,6 @@ Para uso local, copie-o para `.env.local` e substitua os valores. Não versione 
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → **Connect** ou **Settings → API Keys** → Publishable key; a `anon` legada também funciona | Obrigatória | Cliente público protegido por RLS. |
 | `NEXT_PUBLIC_SITE_URL` | Domínio do projeto na Vercel | Obrigatória no deploy | Origem canônica dos callbacks e links. Use `https://SEU-PROJETO.vercel.app`. |
 | `DEMO_ACCESS_ENABLED` | Definida manualmente; padrão `true` | Não | Controla o botão e o painel público de demonstração somente leitura. Use `false` para ocultá-los. |
-| `EMAIL_AUTH_ENABLED` | Definida manualmente; use `false` nesta fase | Não | Mantém o envio de magic link desligado até a escolha do provedor de autenticação/e-mail. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → **Settings → API Keys** → Secret key; a `service_role` legada também funciona | Opcional no teste manual; recomendada | Rotas administrativas, disponibilidade de slug, checkout e webhook. Nunca expor no navegador. |
 | `ASAAS_API_KEY` | Painel web do ambiente Asaas → **Integrações → Chave da API** | Não | Cria o checkout recorrente. O prefixo atual seleciona Sandbox ou Produção automaticamente. |
 | `ASAAS_WEBHOOK_TOKEN` | Segredo gerado por você e copiado para o webhook no Asaas | Não | Valida o header de `POST /api/webhooks/asaas`; deve ter 32–255 caracteres e ser diferente da API key. |
@@ -256,7 +255,7 @@ O WhatsApp deve estar no formato `55 + DDD + número`, somente com dígitos. O s
 Depois de executar:
 
 1. Abra `https://SEU-PROJETO.vercel.app/painel`.
-2. No ambiente local, entre com o e-mail e a senha definidos manualmente no Supabase Auth.
+2. Entre com o e-mail e a senha definidos manualmente no Supabase Auth.
 3. Abra a loja em `https://SEU-PROJETO.vercel.app/loja/loja-teste`.
 
 Para o ambiente de teste atual, também existe um seed repetível já
@@ -394,7 +393,7 @@ O webhook e os callbacks não devem apontar para `localhost`. Para o teste compl
 
     O resultado aprovado deve mostrar `cadastro_status = pago`, `tenant_status = ativo`, `assinatura_status = ativo`, valor `27.00` e IDs `cus_...`/`sub_...` preenchidos.
 
-11. Abra **Supabase → Authentication → Users** e confirme que o usuário foi criado e marcado como confirmado. Nenhum e-mail será enviado. Nesta fase, o acesso do novo cliente ao painel fica pendente até a autenticação definitiva ser habilitada.
+11. Abra **Supabase → Authentication → Users** e confirme que o usuário foi criado e marcado como confirmado. Nenhum e-mail será enviado. Na tela de sucesso, crie a senha usando o mesmo e-mail do cadastro; a aplicação deve entrar automaticamente em `/painel/loja`.
 12. Repita com um slug/e-mail diferentes e um cartão de recusa. O checkout deve negar o pagamento e nenhum tenant ativo deve ser criado.
 13. Antes de Produção, repita o cadastro do webhook na conta real do Asaas, substitua a API key na Vercel, faça novo deploy e realize uma transação real de valor controlado.
 
@@ -403,7 +402,7 @@ O webhook e os callbacks não devem apontar para `localhost`. Para o teste compl
 ### Funciona com Supabase + Vercel configurados, sem Asaas
 
 - landing page, termos e política de privacidade;
-- login local por e-mail e senha para um usuário criado manualmente no Supabase Auth;
+- login por e-mail e senha em ambiente local e produção;
 - painel público de demonstração somente leitura, quando `DEMO_ACCESS_ENABLED=true`;
 - isolamento multi-tenant pelas policies de RLS;
 - painel da loja e edição de dados visuais;
@@ -425,10 +424,10 @@ Se `SUPABASE_SERVICE_ROLE_KEY` não for configurada, a verificação de disponib
 - criação automática de tenant e assinatura pelo webhook;
 - atualização automática de inadimplência e cancelamento;
 - link real de cobrança/portal fornecido pelo Asaas;
-- envio de convite, magic link ou e-mail de boas-vindas;
-- acesso de novos clientes pagos ao painel até que uma forma de autenticação seja definida;
 
 Sem Asaas, a interface de `/cadastro` pode ser preenchida e o preview funciona, mas o botão final retorna uma mensagem informando que o checkout ainda não foi configurado.
+
+O projeto deliberadamente não envia convite, magic link, recuperação de senha ou e-mail de boas-vindas. Enquanto não houver provedor de e-mail, uma senha esquecida deve ser redefinida manualmente em **Supabase → Authentication → Users**.
 
 ## 9. Mapa dos arquivos reais
 
@@ -449,6 +448,6 @@ Sem Asaas, a interface de `/cadastro` pode ser preenchida e o preview funciona, 
 | Rota que cria o Checkout | `C:\Projeto-Github\CatalogoJá\src\app\api\checkout\asaas\route.ts` |
 | Webhook do Asaas | `C:\Projeto-Github\CatalogoJá\src\app\api\webhooks\asaas\route.ts` |
 | Configuração de imagens Supabase | `C:\Projeto-Github\CatalogoJá\next.config.ts` |
-| Callback preparado para autenticação futura | `C:\Projeto-Github\CatalogoJá\src\app\auth\callback\route.ts` |
+| Criação de senha após o pagamento | `C:\Projeto-Github\CatalogoJá\src\app\api\cadastro\definir-senha\route.ts` |
 | Upload de logo e banner | `C:\Projeto-Github\CatalogoJá\src\app\painel\(app)\loja\actions.ts` |
 | Upload de produtos | `C:\Projeto-Github\CatalogoJá\src\app\painel\(app)\produtos\actions.ts` |

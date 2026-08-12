@@ -4,7 +4,7 @@ SaaS multi-tenant de catálogo digital para comerciantes divulgarem produtos e r
 
 ## Estado atual
 
-Etapa funcional concluída: landing comercial, assinatura em duas etapas, checkout recorrente, webhook idempotente, painel completo e catálogo público multi-tenant. O envio de e-mail e o acesso de novos clientes ao painel permanecem desativados até a escolha do método de autenticação. O projeto mantém o design system responsivo com seis temas.
+Etapa funcional concluída: landing comercial, assinatura em duas etapas, checkout recorrente, webhook idempotente, acesso por senha, painel completo e catálogo público multi-tenant. O projeto não envia e-mails: após o pagamento, o cliente cria a senha na própria tela de sucesso. O design system responsivo oferece seis temas.
 
 As integrações não exigem chaves para o projeto compilar. Os clientes Supabase validam a configuração apenas quando uma operação de banco é executada.
 
@@ -29,7 +29,7 @@ Preencha `.env.local` quando as credenciais estiverem disponíveis. Nunca envie 
 
 - `/`: landing comercial;
 - `/cadastro`: dados, slug em tempo real, tema e checkout;
-- `/painel`: acesso local por usuário manual com senha e demonstração pública; autenticação por e-mail desativada por padrão;
+- `/painel`: acesso real por e-mail e senha, sem envio de mensagens, além da demonstração pública;
 - `/painel/loja`, `/painel/categorias`, `/painel/produtos`, `/painel/assinatura`;
 - `/loja/[slug]`: catálogo público;
 - `/api/webhooks/asaas`: sincronização de pagamento e provisionamento.

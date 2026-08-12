@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PasswordSetupForm } from "@/components/cadastro/password-setup-form";
 
-type StatusResponse = { configured?: boolean; ready?: boolean; slug?: string | null; status?: "pendente" | "pago" | "expirado" | "cancelado" };
+type StatusResponse = { accessConfigured?: boolean; configured?: boolean; ready?: boolean; slug?: string | null; status?: "pendente" | "pago" | "expirado" | "cancelado" };
 
 export function SuccessStatus({ reference }: { reference: string | null }) {
   const [status, setStatus] = useState<StatusResponse>({ status: "pendente" });
@@ -55,8 +56,17 @@ export function SuccessStatus({ reference }: { reference: string | null }) {
   return (
     <Card className="overflow-hidden"><div className="h-1.5 bg-[var(--app-success)]" /><div className="p-6 sm:p-9"><span className="grid size-14 place-items-center rounded-full bg-[var(--app-success-soft)] text-[var(--app-success)]"><CheckCircle2 aria-hidden="true" className="size-7" /></span><h1 className="mt-5 text-3xl font-bold">Sua loja está no ar!</h1><p className="mt-2 text-sm leading-6 text-[var(--app-foreground-muted)]">Compartilhe o catálogo e use o painel para cadastrar suas categorias e produtos.</p>
       <div className="mt-7 grid gap-3"><LinkRow copied={copied === "store"} href={storeUrl} icon={ShoppingBag} label="Loja pública" onCopy={() => copy(storeUrl, "store")} /><LinkRow copied={copied === "panel"} href={panelUrl} icon={ExternalLink} label="Painel de edição" onCopy={() => copy(panelUrl, "panel")} /></div>
-      <div className="mt-6 rounded-lg bg-brand-50 p-4 text-sm leading-6"><p>Guarde o link da sua loja. O acesso de novos clientes ao painel será habilitado quando definirmos a autenticação, sem afetar a publicação do catálogo.</p></div>
-      <Link className={buttonVariants({ className: "mt-6", size: "lg" })} href="/painel">Acessar meu painel</Link>
+      {status.accessConfigured ? (
+        <div className="mt-6 grid gap-4">
+          <Alert description="Entre usando o e-mail da assinatura e a senha que você criou." title="Acesso ao painel configurado" variant="success" />
+          <Link className={buttonVariants({ size: "lg" })} href="/painel">Acessar meu painel</Link>
+        </div>
+      ) : (
+        <PasswordSetupForm
+          onConfigured={() => setStatus((current) => ({ ...current, accessConfigured: true }))}
+          reference={reference}
+        />
+      )}
     </div></Card>
   );
 }
